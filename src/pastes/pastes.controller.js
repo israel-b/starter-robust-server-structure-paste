@@ -57,6 +57,7 @@ function pasteIdIsValid(req, res, next) {
     const { pasteId } = req.params;
     const foundPaste = pastes.find((paste) => paste.id === Number(pasteId));
     if (foundPaste) {
+        res.locals.paste = foundPaste;
         return next();
     }
     next({
@@ -68,7 +69,8 @@ function pasteIdIsValid(req, res, next) {
 
 
 function list(req, res) {
-    res.json({ data: pastes });
+    const { userId } = req.params;
+    res.json({ data: pastes.filter(userId ? paste => paste.user_id == userId : () => true) });
 }
 
 function create(req, res) {
@@ -87,15 +89,12 @@ function create(req, res) {
 }
 
 function read(req, res) {
-    const { pasteId } = req.params;
-    const foundPaste = pastes.find((paste) => paste.id === Number(pasteId));
-    res.json({ data: foundPaste });
+    res.json({ data: res.locals.paste });
 }
 
 function update(req, res) {
-    const { pasteId } = req.params;
-    const { data: { name, syntax, exposure, expiration, text, user_id } = {} } = req.body;
-    const foundPaste = pastes.find((paste) => paste.id === Number(pasteId));
+    const { data: { name, syntax, exposure, expiration, text } = {} } = req.body;
+    const foundPaste = res.locals.paste;
     foundPaste.name = name;
     foundPaste.syntax = syntax;
     foundPaste.exposure = exposure;
